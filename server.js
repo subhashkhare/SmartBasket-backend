@@ -20,17 +20,20 @@ app.use('/api/auth', authRoutes);
 app.use('/api/stores', storeRoutes);
 app.use('/api/prices', priceRoutes);
 
+const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI is missing in backend .env');
+  }
+
+  await mongoose.connect(process.env.MONGODB_URI, {
+    serverSelectionTimeoutMS: 10000,
+  });
+  console.log('Connected to MongoDB Atlas');
+};
+
 const startServer = async () => {
   try {
-    if (!process.env.MONGODB_URI) {
-      throw new Error('MONGODB_URI is missing in backend .env');
-    }
-
-    await mongoose.connect(process.env.MONGODB_URI, {
-      serverSelectionTimeoutMS: 10000,
-    });
-    console.log('Connected to MongoDB Atlas');
-
+    await connectDB();
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);
     });
@@ -40,4 +43,12 @@ const startServer = async () => {
   }
 };
 
-startServer();
+if (require.main === module) {
+  startServer();
+} else {
+  connectDB().catch((err) => {
+    console.error('MongoDB connection error:', err);
+  });
+}
+
+module.exports = app;
