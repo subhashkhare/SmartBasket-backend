@@ -11,25 +11,56 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+let mongoConnectPromise = null;
+const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    throw new Error('MONGODB_URI is required');
+  }
+  if (!process.env.JWT_SECRET) {
+    throw new Error('JWT_SECRET is required');
+  }
+  if (mongoose.connection.readyState === 1) {
+    return mongoose.connection;
+  }
+
+  if (mongoConnectPromise) {
+    return mongoConnectPromise;
+  }
+
+  mongoConnectPromise = mongoose
+    .connect(process.env.MONGODB_URI, {
+      serverSelectionTimeoutMS: 10000,
+    })
+    .then((connection) => {
+      console.log('Connected to MongoDB Atlas');
+      return connection;
+    })
+    .catch((err) => {
+      mongoConnectPromise = null;
+      throw err;
+    });
+
+  return mongoConnectPromise;
+};
+
 // Middleware
 app.use(cors());
 app.use(express.json());
+app.use(async (req, res, next) => {
+  try {
+    await connectDB();
+    next();
+  } catch (err) {
+    console.error('MongoDB connection error:', err);
+    res.status(500).json({ message: 'Database connection failed' });
+  }
+});
 
 // Routes
 app.use('/api/auth', authRoutes);
 app.use('/api/stores', storeRoutes);
 app.use('/api/prices', priceRoutes);
 
-const connectDB = async () => {
-  if (!process.env.MONGODB_URI) {
-    throw new Error('MONGODB_URI is missing in backend .env');
-  }
-
-  await mongoose.connect(process.env.MONGODB_URI, {
-    serverSelectionTimeoutMS: 10000,
-  });
-  console.log('Connected to MongoDB Atlas');
-};
 
 const startServer = async () => {
   try {
@@ -45,10 +76,6 @@ const startServer = async () => {
 
 if (require.main === module) {
   startServer();
-} else {
-  connectDB().catch((err) => {
-    console.error('MongoDB connection error:', err);
-  });
 }
 
 module.exports = app;
