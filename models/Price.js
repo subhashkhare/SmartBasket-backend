@@ -18,6 +18,10 @@ const priceSchema = new mongoose.Schema({
     type: String,
     default: null,
   },
+  receiptDate: {
+    type: String,
+    default: null,
+  },
 }, { timestamps: true });
 
 module.exports = mongoose.model('Price', priceSchema);

@@ -46,12 +46,13 @@ router.get('/:id', async (req, res) => {
 // Create price
 router.post('/', auth, async (req, res) => {
   try {
-    const { itemId, itemName, prices, userId } = req.body;
+    const { itemId, itemName, prices, userId, receiptDate } = req.body;
     const price = new Price({
       itemId,
       itemName,
       prices,
       userId: userId || null,
+      receiptDate: receiptDate || null,
     });
     await price.save();
     res.status(201).json(price);
@@ -64,10 +65,10 @@ router.post('/', auth, async (req, res) => {
 // Update price
 router.put('/:id', auth, async (req, res) => {
   try {
-    const { itemId, itemName, prices, userId } = req.body;
+    const { itemId, itemName, prices, userId, receiptDate } = req.body;
     const price = await Price.findByIdAndUpdate(
       req.params.id,
-      { itemId, itemName, prices, userId: userId || null },
+      { itemId, itemName, prices, userId: userId || null, receiptDate: receiptDate || null },
       { new: true }
     );
     if (!price) {
