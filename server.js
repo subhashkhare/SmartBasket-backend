@@ -11,6 +11,30 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 5000;
 
+// Origins allowed to call this API
+const ALLOWED_ORIGINS = [
+  'https://smart-basket-frontend.vercel.app', // production frontend
+  // localhost ports are only reachable from a developer's own machine,
+  // never from a real user's browser hitting the production API
+  'http://localhost:8082',  // vite dev server (frontend)
+  'http://localhost:5173',
+  'http://localhost:5174',
+];
+
+const corsOptions = {
+  origin: (origin, callback) => {
+    // Allow server-to-server requests (no origin) and listed origins
+    if (!origin || ALLOWED_ORIGINS.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(null, false);
+    }
+  },
+  methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  optionsSuccessStatus: 200,
+};
+
 let mongoConnectPromise = null;
 const connectDB = async () => {
   if (!process.env.MONGODB_URI) {
@@ -44,7 +68,7 @@ const connectDB = async () => {
 };
 
 // Middleware
-app.use(cors());
+app.use(cors(corsOptions));
 app.use(express.json());
 app.use(async (req, res, next) => {
   try {
