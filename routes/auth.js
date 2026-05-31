@@ -90,7 +90,7 @@ router.post('/register', async (req, res) => {
   }
 });
 
-// Login — validates credentials then sends WhatsApp OTP (no JWT yet)
+// Login — validates credentials and issues JWT directly (OTP disabled)
 router.post('/login', async (req, res) => {
   try {
     const { phoneNumber, pin } = req.body;
@@ -110,17 +110,23 @@ router.post('/login', async (req, res) => {
       return res.status(400).json({ message: 'Invalid credentials' });
     }
 
-    const otp = generateOTP();
-    storeOTP(approval.normalizedPhoneNumber, otp);
+    // TODO: re-enable WhatsApp OTP when Twilio is configured
+    // const otp = generateOTP();
+    // storeOTP(approval.normalizedPhoneNumber, otp);
+    // await sendWhatsAppOTP(approval.normalizedPhoneNumber, otp);
+    // return res.json({ otpRequired: true, phoneNumber: approval.normalizedPhoneNumber });
 
-    try {
-      await sendWhatsAppOTP(approval.normalizedPhoneNumber, otp);
-    } catch (otpError) {
-      console.error('Failed to send WhatsApp OTP:', otpError);
-      return res.status(500).json({ message: 'Failed to send OTP. Please try again.' });
-    }
-
-    res.json({ otpRequired: true, phoneNumber: approval.normalizedPhoneNumber });
+    const token = jwt.sign({ id: user._id }, process.env.JWT_SECRET, { expiresIn: '7d' });
+    res.json({
+      token,
+      user: {
+        id: user._id,
+        phoneNumber: user.phoneNumber,
+        email: user.email,
+        preferredStore: user.preferredStore,
+        zipCode: user.zipCode,
+      },
+    });
   } catch (error) {
     console.error('Login error:', error);
     res.status(500).json({ message: 'Server error' });
