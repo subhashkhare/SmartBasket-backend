@@ -14,6 +14,11 @@ const priceSchema = new mongoose.Schema({
     of: Number,
     required: true,
   },
+  storeNames: {
+    type: Map,
+    of: String,
+    default: {},
+  },
   userId: {
     type: String,
     default: null,

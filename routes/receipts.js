@@ -1,6 +1,7 @@
 const express = require('express');
 const Receipt = require('../models/Receipt');
 const Price = require('../models/Price');
+const User = require('../models/User');
 const { auth } = require('./auth');
 
 const router = express.Router();
@@ -85,14 +86,21 @@ router.post('/', auth, async (req, res) => {
           itemId:      item.itemId,
           itemName:    item.itemName,
           prices:      { [storeId]: item.unitPrice },
+          storeNames:  { [storeId]: storeName || storeId },
           userId:      userId || null,
           receiptDate: receiptDate || null,
         });
       } else {
         existing.prices.set(storeId, item.unitPrice);
+        if (!existing.storeNames) existing.storeNames = new Map();
+        existing.storeNames.set(storeId, storeName || storeId);
         if (receiptDate) existing.receiptDate = receiptDate;
         await existing.save();
       }
+    }
+
+    if (userId) {
+      await User.findOneAndUpdate({ phoneNumber: userId }, { lastScannedAt: new Date() });
     }
 
     res.status(201).json({ receipt, updated: normalizedItems.length });

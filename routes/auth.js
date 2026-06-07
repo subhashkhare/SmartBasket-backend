@@ -82,6 +82,7 @@ router.post('/register', async (req, res) => {
         email: user.email,
         preferredStore: user.preferredStore,
         zipCode: user.zipCode,
+        lastScannedAt: user.lastScannedAt ?? null,
       },
     });
   } catch (error) {
@@ -125,6 +126,7 @@ router.post('/login', async (req, res) => {
         email: user.email,
         preferredStore: user.preferredStore,
         zipCode: user.zipCode,
+        lastScannedAt: user.lastScannedAt ?? null,
       },
     });
   } catch (error) {
@@ -162,6 +164,7 @@ router.post('/verify-otp', async (req, res) => {
         email: user.email,
         preferredStore: user.preferredStore,
         zipCode: user.zipCode,
+        lastScannedAt: user.lastScannedAt ?? null,
       },
     });
   } catch (error) {
@@ -223,6 +226,7 @@ router.patch('/profile', auth, async (req, res) => {
         email: user.email,
         preferredStore: user.preferredStore,
         zipCode: user.zipCode,
+        lastScannedAt: user.lastScannedAt ?? null,
       },
     });
   } catch (error) {

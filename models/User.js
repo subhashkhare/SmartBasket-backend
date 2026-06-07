@@ -38,6 +38,10 @@ const userSchema = new mongoose.Schema({
     default: null,
     match: [/^\d{5}(?:-\d{4})?$/, 'ZIP code must be valid US format'],
   },
+  lastScannedAt: {
+    type: Date,
+    default: null,
+  },
 }, { timestamps: true });
 
 // Hash PIN before saving
